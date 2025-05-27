@@ -45,10 +45,3 @@ contract DeployLegacyUniswapFactory is Script {
 // Deployed to: 0xc6e7DF5E7b4f2A278906862b61205850344D4e7d
 // Transaction hash: 0x9bf2b40bffbe4f9921ce3721569095001abd0b3bf08a160390e9361694beb21a
 
-// ✅ 准备部署者账户
-// ✅ 部署 LegacyFactoryDeployer 合约
-// ✅ 使用 deploy 方法创建 UniswapV2Factory 实例
-// ✅ 调用 setFeeTo 设置费用接收地址 (可选)
-// ✅ 为每对代币调用 createPair 方法
-// ✅ 为每个交易对添加初始流动性
-// ✅ 验证合约代码到区块浏览器
