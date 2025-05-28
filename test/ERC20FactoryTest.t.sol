@@ -76,12 +76,11 @@ contract ERC20FactoryTest is Test {
         vm.deal(address(factory), 1001 ether); 
         vm.deal(address(router), 1001 ether);
 
-        // vm.startPrank(user);
         address token = factory.deployInscription("TEST", 1000e18, 100e18, 0.1 ether);
         vm.prank(user);
         factory.mintInscription{value: 0.1 ether}(token); // 初始流动性
 
-        // // 构造路径
+        // // // 构造路径
         // address weth = router.WETH();
         // address[] memory path = new address[](2);
         // path[0] = weth;
@@ -89,7 +88,22 @@ contract ERC20FactoryTest is Test {
 
         // // 查询可兑换数量
         // uint[] memory amounts = router.getAmountsOut(0.5 ether, path);
-        // uint amountOutMin = amounts[1] * 99 / 100; // 打九折容错
+        // // uint amountOutMin = amounts[1] * 99 / 100; // 打九折容错
+        // console.log("amounts: ", amounts.length);
+        // console.log("amounts: ", amounts[0]);
+        // console.log("amounts: ", amounts[1]);
+
+        // IUniswapV2Pair pair = IUniswapV2Pair(IUniswapV2Factory(factory.uniswapFactory()).getPair(token, factory.WETH()));
+        // (uint res0, uint res1,) = pair.getReserves();
+        // address pairAddr = IUniswapV2Factory(factory.uniswapFactory()).getPair(token, factory.WETH());
+
+        // (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = IUniswapV2Pair(pairAddr).getReserves();
+        // console.log("reserve0: ", reserve0);
+        // console.log("reserve1: ", reserve1);
+        // console.log("blockTimestampLast: ", blockTimestampLast);
+
+        // uint256 amountOut = router.getAmountOut(0.5 ether, reserve0, reserve1);
+        // console.log("amountOut: ", amountOut);
 
         uint256 before_token = BaseERC20Template(token).balanceOf(user);
         console.log("before: ", BaseERC20Template(token).balanceOf(user));
@@ -99,15 +113,13 @@ contract ERC20FactoryTest is Test {
         factory.buyMeme{value: 0.5 ether}(token, 80e18, block.timestamp + 3600);
         console.log("after: ", BaseERC20Template(token).balanceOf(user));
         // assertEq(BaseERC20Template(token).balanceOf(user), 80e18);
-        // assertEq(BaseERC20Template(token).balanceOf(user), 80e18);
         assertTrue(BaseERC20Template(token).balanceOf(user) > before_token);
-        // vm.stopPrank();
     }
 }
 // 183291562238930659983
-// 50000000000000000000
 // 183291562238930659983
 // 100000000000000000000
 // 183291562238930659983
-
+// 83291562238930659983
 // uint[] memory amounts
+
