@@ -1,3 +1,7 @@
+- 测试用例
+```
+test/ERC20FactoryTest.t.sol
+```
 - 测试用例日志
 ```
 ❯ forge test --match-contract ERC20FactoryTest -vv
