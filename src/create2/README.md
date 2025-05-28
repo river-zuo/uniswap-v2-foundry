@@ -1,25 +1,17 @@
-# 最小代理实现ERC20铸币工厂
-- 工厂合约
-ERC20FactoryContract.sol
-- erc20模版合约
-BaseERC20Template.sol
--测试合约
-test/create2/ERC20FactoryContractTest.sol
-# 测试日志
+- 测试用例日志
 ```
-❯ forge test --match-contract ERC20Factory -vv
+❯ forge test --match-contract ERC20FactoryTest -vv
 [⠊] Compiling...
 No files changed, compilation skipped
 
-Ran 1 test for test/create2/ERC20FactoryContractTest.sol:ERC20FactoryContractTest
-[PASS] testDeployAndMint() (gas: 293740)
+Ran 2 tests for test/ERC20FactoryTest.t.sol:ERC20FactoryTest
+[PASS] testBuyMemeWithBetterPrice() (gas: 2553680)
 Logs:
-  erc20 factory balance:  10
-  minter balance:  999999999999999950
-  creator balance:  1000000000000000040
-  minter token:  100
+  before:  100000000000000000000
+  after:  183291562238930659983
 
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 717.33µs (232.33µs CPU time)
+[PASS] testDeployAndAddLiquidity() (gas: 2507123)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 15.51ms (2.38ms CPU time)
 
-Ran 1 test suite in 124.02ms (717.33µs CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+Ran 1 test suite in 231.71ms (15.51ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)
 ```

@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Script.sol";
 import "src/WETH9.sol";
+import { IUniswapV2Router02 } from "src/UniswapV2Interfaces.sol";
 
 interface ILegacyUniswapV2Router02Deployer {
     function deploy(address factory, address weth) external returns (address);
@@ -17,7 +18,11 @@ contract DeployUniswapV2Router02 is Script {
 
         WETH9 weth9 = new WETH9();
         address routerV2 = ILegacyUniswapV2Router02Deployer(router02Deployer).deploy(factoryAddr, address(weth9));
+        address weth_addr = IUniswapV2Router02(routerV2).WETH();
+        address factory_addr = IUniswapV2Router02(routerV2).factory();
         vm.stopBroadcast();
+        console2.log("weth_addr at:", weth_addr);
+        console2.log("factory_addr at:", factory_addr);
         console2.log("WETH9 deployed at:", address(weth9));
         console2.log("LegacyUniswapV2Router02 deployed at:", routerV2);
     }
