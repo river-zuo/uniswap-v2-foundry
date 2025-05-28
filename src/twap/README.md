@@ -2,6 +2,7 @@
 ```
 test/MemeTWAPTest.t.sol
 ```
+查看合约文件 👉[MemeTWAPTest](../../test/MemeTWAPTest.t.sol)
 - MemeTWAP测试日志
 ```
 ❯ forge test --match-contract MemeTWAPTest -vv
