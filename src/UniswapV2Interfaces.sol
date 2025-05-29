@@ -1,6 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+interface ILegacyUniswapV2Router02Deployer {
+    function deploy(address factory, address weth) external returns (address);
+}
+
+interface ILegacyFactoryDeployer {
+    function deploy(address feeToSetter) external returns (address);
+}
+
+// swap 闪电贷回调函数
+interface IUniswapV2Callee {
+    function uniswapV2Call(address sender, uint amount0, uint amount1, bytes calldata data) external;
+}
+
 interface IUniswapV2Pair {
     event Approval(address indexed owner, address indexed spender, uint value);
     event Transfer(address indexed from, address indexed to, uint value);
