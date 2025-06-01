@@ -4,92 +4,109 @@ pragma solidity ^0.8.0;
 import {IStaking, IToken} from "./IStakingInterfaces.sol";
 
 contract StakingPool is IStaking {
-    
-    IToken public immutable rewardToken; // KK Token
-    uint256 public constant REWARD_PER_BLOCK = 10 ether; // 每个区块产出 10 个 KK，18 位精度
+    IToken public kkToken;
 
-    struct StakerInfo {
-        uint256 stakedAmount;
-        uint256 rewardDebt;
-        uint256 lastBlock;
-    }
+    uint256 public rewardPerBlock = 10 ether; // 每区块产出 10 个 KK（按 18 位精度）
+    uint256 public lastRewardBlock;
+    uint256 public accRewardPerShare; // 累积每份质押能获得多少奖励（乘上 1e12 精度）
 
     uint256 public totalStaked;
-    mapping(address => StakerInfo) public stakers;
 
-    constructor(address _rewardToken) {
-        rewardToken = IToken(_rewardToken);
+    struct UserInfo {
+        uint256 amount;     // 质押的ETH数量
+        uint256 rewardDebt; // 已经领取过的部分（用于计算未领取奖励）
+    }
+
+    mapping(address => UserInfo) public userInfo;
+
+    constructor(address _kkToken) {
+        kkToken = IToken(_kkToken);
+        lastRewardBlock = block.number;
     }
 
     receive() external payable {
         stake();
     }
 
-    function updateRewards(address account) internal {
-        StakerInfo storage user = stakers[account];
+    function updatePool() public {
+        if (block.number <= lastRewardBlock) return;
 
-        if (user.stakedAmount > 0) {
-            uint256 blocks = block.number - user.lastBlock;
-            uint256 totalReward = blocks * REWARD_PER_BLOCK;
+        if (totalStaked == 0) {
+            lastRewardBlock = block.number;
+            return;
+        }
 
-            if (totalStaked > 0) {
-                uint256 userShare = (totalReward * user.stakedAmount) / totalStaked;
-                user.rewardDebt += userShare;
+        uint256 blocks = block.number - lastRewardBlock;
+        uint256 reward = blocks * rewardPerBlock;
+
+        accRewardPerShare += reward * 1e12 / totalStaked;
+        lastRewardBlock = block.number;
+    }
+
+    function stake() public payable override{
+        require(msg.value > 0, "stake amount is 0");
+
+        UserInfo storage user = userInfo[msg.sender];
+        updatePool();
+
+        // 发放未领取奖励
+        if (user.amount > 0) {
+            uint256 pending = user.amount * accRewardPerShare / 1e12 - user.rewardDebt;
+            if (pending > 0) {
+                kkToken.mint(msg.sender, pending);
             }
         }
 
-        user.lastBlock = block.number;
-    }
-
-    function stake() public payable override {
-        require(msg.value > 0, "Must stake more than 0");
-
-        updateRewards(msg.sender);
-
-        stakers[msg.sender].stakedAmount += msg.value;
+        user.amount += msg.value;
+        user.rewardDebt = user.amount * accRewardPerShare / 1e12;
         totalStaked += msg.value;
-
-        // （加分项）可将 msg.value 存入借贷市场赚利息
-        // depositToLendingMarket(msg.value);
     }
 
     function unstake(uint256 amount) external override {
-        StakerInfo storage user = stakers[msg.sender];
-        require(user.stakedAmount >= amount, "Not enough staked");
+        UserInfo storage user = userInfo[msg.sender];
+        require(user.amount >= amount, "not enough staked");
 
-        updateRewards(msg.sender);
+        updatePool();
 
-        user.stakedAmount -= amount;
+        uint256 pending = user.amount * accRewardPerShare / 1e12 - user.rewardDebt;
+        if (pending > 0) {
+            kkToken.mint(msg.sender, pending);
+        }
+
+        user.amount -= amount;
+        user.rewardDebt = user.amount * accRewardPerShare / 1e12;
         totalStaked -= amount;
 
-        payable(msg.sender).transfer(amount);
-
-        // （可选）从借贷市场提取 ETH
-        // withdrawFromLendingMarket(amount);
+        // payable(msg.sender).transfer(amount);
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "ETH transfer failed");
     }
 
     function claim() external override {
-        updateRewards(msg.sender);
+        UserInfo storage user = userInfo[msg.sender];
+        updatePool();
 
-        uint256 reward = stakers[msg.sender].rewardDebt;
-        require(reward > 0, "No rewards");
+        uint256 pending = user.amount * accRewardPerShare / 1e12 - user.rewardDebt;
+        require(pending > 0, "no rewards");
 
-        stakers[msg.sender].rewardDebt = 0;
-        rewardToken.mint(msg.sender, reward);
+        user.rewardDebt = user.amount * accRewardPerShare / 1e12;
+        kkToken.mint(msg.sender, pending);
     }
 
     function balanceOf(address account) external view override returns (uint256) {
-        return stakers[account].stakedAmount;
+        return userInfo[account].amount;
     }
 
     function earned(address account) external view override returns (uint256) {
-        StakerInfo memory user = stakers[account];
-        if (user.stakedAmount == 0) return user.rewardDebt;
+        UserInfo storage user = userInfo[account];
 
-        uint256 blocks = block.number - user.lastBlock;
-        uint256 totalReward = blocks * REWARD_PER_BLOCK;
-        uint256 userShare = totalStaked > 0 ? (totalReward * user.stakedAmount) / totalStaked : 0;
+        uint256 _accRewardPerShare = accRewardPerShare;
+        if (block.number > lastRewardBlock && totalStaked != 0) {
+            uint256 blocks = block.number - lastRewardBlock;
+            uint256 reward = blocks * rewardPerBlock;
+            _accRewardPerShare += reward * 1e12 / totalStaked;
+        }
 
-        return user.rewardDebt + userShare;
+        return user.amount * _accRewardPerShare / 1e12 - user.rewardDebt;
     }
 }
