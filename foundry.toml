@@ -4,8 +4,8 @@ out = "out"
 libs = ["lib"]
 via-ir = true
 optimizer = true
+# solc-version = "0.8.28"
+auto-detect-solc = true
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 
-# solc-version = "0.8.20"
-# auto-detect-solc = true
