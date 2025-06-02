@@ -18,6 +18,9 @@ contract GovTest is Test {
         gov = new Gov(token);
         bank = new GovBank(address(gov));
 
+        // 发行这些数量的token后，投票的票数就会不满足 5% 的阈值
+        // token.mint(address(0x1111), 100_000_0000 ether);
+
         // 分发 token 并 delegate 投票权
         token.mint(alice, 100_000 ether);
         vm.prank(alice);
